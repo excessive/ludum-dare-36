@@ -41,6 +41,7 @@ local console = {
 
 	visible = false,
 	delta = 0,
+	blink = 0,
 	logs = {},
 	history = {},
 	historyPosition = 0,
@@ -448,6 +449,7 @@ function console.keypressed(key)
 			console.lastLine = console.firstLine + console.linesPerConsole
 		end
 
+		console.blink = 0
 		return true
 	elseif key == console._KEY_TOGGLE then
 		-- IME support stuff.
@@ -455,6 +457,7 @@ function console.keypressed(key)
 			return true
 		end
 		console.visible = not console.visible
+		console.blink = 0
 		if console.visible then start_editing() else stop_editing() end
 		return true
 	end
@@ -463,6 +466,7 @@ end
 
 function console.update(dt)
 	console.delta = console.delta + dt
+	console.blink = console.blink + dt
 end
 
 function console.draw()
@@ -508,7 +512,7 @@ function console.draw()
 		x = x + console.font:getWidth(buf.text)
 	end
 	love.graphics.print(text_r, x + console.font:getWidth(text_l), y)
-	if math.floor(console.delta * 2) % 2 == 0 then
+	if math.floor(console.blink * 2) % 2 == 0 then
 		love.graphics.setColor(color.r, color.g, color.b, color.a)
 	else
 		love.graphics.setColor(color.r, color.g, color.b, 0)
@@ -569,6 +573,9 @@ end
 function console.wheelmoved(wx, wy)
 	if not console.visible then
 		return false
+	end
+	if #console.logs < console.linesPerConsole then
+		return true
 	end
 
 	local x, y = love.mouse.getPosition()
